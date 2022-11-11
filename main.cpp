@@ -8,27 +8,30 @@ void message(ostream& is, const char* str) {
 }
 template <typename T0, typename... T>
 void message(ostream& is, const char* str, T0 first, T... args) {
-	while (true) {
-		if (!*str) return;
-		if (*str == '%') {
+	while (true)
+        switch (*str) {
+        case '%':
 			is << first;
-			return message(is, str + 1, args...);
-		}
-		is << *str;
-		str++;
-	}
+			message(is, str + 1, args...);
+        case 0:
+            return;
+        default:
+            is << *str;
+            str++;
+        }
 }
 
-template <typename T, size_t N>
-auto cat(const array<T, N>& first) {
-	return first;
-}
-template <typename T, size_t N1, size_t N2, typename... Args>
-auto cat(const array<T, N1>& first, const array<T, N2>& second, Args&... args) {
-	array<T, N1 + N2> new_arr;
-	copy(first.begin(), first.end(), new_arr.begin());
-	copy(second.begin(), second.end(), new_arr.begin()+N1);
-	return cat(new_arr, args...);
+template <typename T, size_t N, typename... Args>
+auto cat(const array<T, N>& first, Args&... args) {
+    if constexpr (!sizeof...(args))
+        return first;
+    else {
+        auto second = cat(args...);
+        array<T, N + second.size()> new_arr;
+        copy(first.begin(), first.end(), new_arr.begin());
+        copy(second.begin(), second.end(), new_arr.begin()+N);
+        return new_arr;
+    }
 }
 
 template <class T, int N, int M>
